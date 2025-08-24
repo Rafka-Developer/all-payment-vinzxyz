@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment -VinzXyz</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      background: radial-gradient(ellipse at bottom, #0d0d25 0%, #000000 100%);
+      font-family: 'Share Tech Mono', monospace;
+      color: #00f7ff;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+      z-index: 1;
+      padding: 20px;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1, h2, h3 {
+      color: #00f7ff;
+      text-shadow: 0 0 12px #00f7ff;
+    }
+
+    #payment-page {
+      background: linear-gradient(135deg, rgba(0,0,0,0.45), rgba(1,10,20,0.25));
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 40px rgba(0, 247, 255, 0.08);
+      transition: all 0.5s ease;
+      max-width: 420px;
+      width: calc(100% - 40px);
+    }
+
+    .button, .copy-input {
+      margin: 10px;
+      padding: 12px 22px;
+      font-size: 16px;
+      background: transparent;
+      color: #00f7ff;
+      border: 2px solid #00f7ff;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.28s cubic-bezier(.2,.8,.2,1);
+      box-shadow: 0 0 8px rgba(0,247,255,0.08), inset 0 0 12px rgba(0,247,255,0.04);
+    }
+
+    .button:hover {
+      background-color: #00f7ff;
+      color: black;
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 6px 28px rgba(0,247,255,0.18), inset 0 0 30px rgba(0,247,255,0.12);
+    }
+
+    .copy-input {
+      color: black;
+      background: white;
+      border: none;
+      padding: 10px;
+      width: 220px;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    #qris-section, #dana-section, #gopay-section {
+      display: none;
+      margin-top: 12px;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    #qris-section.show, #dana-section.show, #gopay-section.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    img {
+      border-radius: 12px;
+      border: 2px solid rgba(0,247,255,0.16);
+      box-shadow: 0 8px 30px rgba(0,247,255,0.06);
+      margin-top: 10px;
+      background: white;
+    }
+
+    @media (max-width:420px){
+      .copy-input { width: 180px; font-size:14px; }
+      .button { padding:10px 16px; font-size:15px; }
+      #payment-page { padding: 20px; border-radius:16px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="space"></canvas>
+
+<div id="welcome-page" class="container">
+  <h1>🚀 Selamat Datang</h1>
+  <p>Silakan Click Mulai Untuk Melanjutkan Ke Pembayaran</p>
+  <button class="button" onclick="goToPayment()">Mulai</button>
+</div>
+
+<div id="payment-page" class="container" style="display:none;">
+  <h2>Pilih Metode Pembayaran</h2>
+  <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+    <button class="button" onclick="showQRIS()">QRIS</button>
+    <button class="button" onclick="showDana()">Dana</button>
+    <button class="button" onclick="showGopay()">Gopay</button>
+  </div>
+
+  <!-- QRIS -->
+  <div id="qris-section" class="">
+    <h3>Scan QRIS</h3>
+    <img id="qrisImage" src="https://files.catbox.moe/aeogdw.jpg" alt="QRIS" width="250" />
+    <br>
+    <button class="button" onclick="downloadQRIS()">Download QRIS</button>
+  </div>
+
+  <!-- Dana -->
+  <div id="dana-section" class="">
+    <h3>Nomor Dana</h3>
+    <input id="danaNumber" class="copy-input" value="085167997251" readonly />
+    <br>
+    <button class="button" onclick="copyToClipboard('danaNumber')">Salin</button>
+  </div>
+
+  <!-- GoPay -->
+  <div id="gopay-section" class="">
+    <h3>Nomor GoPay</h3>
+    <input id="gopayNumber" class="copy-input" value="082162564181" readonly />
+    <br>
+    <button class="button" onclick="copyToClipboard('gopayNumber')">Salin</button>
+  </div>
+
+  <a class="button" href="https://t.me/StoreK4IX/4" target="_blank">🔗 All Produk</a>
+</div>
+
+<script>
+  function goToPayment() {
+    document.getElementById("welcome-page").style.display = "none";
+    const pp = document.getElementById("payment-page");
+    pp.style.display = "flex";
+    pp.classList.add('container');
+  }
+
+  function hideAll() {
+    ['qris','dana','gopay'].forEach(id => {
+      const el = document.getElementById(id + '-section');
+      el.classList.remove('show');
+      setTimeout(() => { if (!el.classList.contains('show')) el.style.display = 'none'; }, 380);
+    });
+  }
+
+  function showQRIS() {
+    hideAll();
+    const el = document.getElementById('qris-section');
+    el.style.display = 'block';
+    requestAnimationFrame(()=> el.classList.add('show'));
+  }
+
+  function showDana() {
+    hideAll();
+    const el = document.getElementById('dana-section');
+    el.style.display = 'block';
+    requestAnimationFrame(()=> el.classList.add('show'));
+  }
+
+  function showGopay() {
+    hideAll();
+    const el = document.getElementById('gopay-section');
+    el.style.display = 'block';
+    requestAnimationFrame(()=> el.classList.add('show'));
+  }
+
+  function copyToClipboard(id) {
+    const copyText = document.getElementById(id);
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    alert("Disalin: " + copyText.value);
+  }
+
+  // ✅ Fungsi download QRIS yang normal
+  function downloadQRIS() {
+    const imageUrl = "https://files.catbox.moe/aeogdw.jpg";
+    const fileName = "QRIS.png";
+    const link = document.createElement("a");
+    link.href = imageUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  /* === Semua kode animasi canvas kamu di sini tanpa diubah === */
+  const canvas = document.getElementById("space");
+  const ctx = canvas.getContext("2d");
+  let w = canvas.width = window.innerWidth;
+  let h = canvas.height = window.innerHeight;
+  let devicePixelRatio = Math.max(1, window.devicePixelRatio || 1);
+
+  function resizeCanvas() {
+    devicePixelRatio = Math.max(1, window.devicePixelRatio || 1);
+    w = canvas.width = Math.floor(window.innerWidth * devicePixelRatio);
+    h = canvas.height = Math.floor(window.innerHeight * devicePixelRatio);
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  resizeCanvas();
+
+  const stars = [];
+  const STAR_COUNT = 180;
+  for (let i = 0; i < STAR_COUNT; i++) {
+    stars.push({
+      x: Math.random() * w / devicePixelRatio,
+      y: Math.random() * h / devicePixelRatio,
+      r: 0.4 + Math.random() * 1.6,
+      dx: 0.05 + Math.random() * 0.4,
+      alpha: 0.4 + Math.random() * 0.6
+    });
+  }
+
+  const meteors = [];
+  function createMeteor() {
+    return {
+      x: Math.random() * w / devicePixelRatio,
+      y: -20,
+      vx: -3 - Math.random() * 3,
+      vy: 4 + Math.random() * 4,
+      size: 2 + Math.random() * 3,
+      opacity: 1
+    };
+  }
+
+  const rain = [];
+  const RAIN_COUNT = Math.min(600, Math.floor((window.innerWidth / 2)));
+  function createRainParticle(init=false) {
+    const z = 0.2 + Math.random() * 1.4;
+    const x = Math.random() * w / devicePixelRatio;
+    const y = (init ? Math.random() * h / devicePixelRatio : -20 - Math.random() * 200);
+    const baseSpeed = 200;
+    const vy = (baseSpeed / (z * 10)) * (0.9 + Math.random() * 0.6);
+    const vx = (Math.random() - 0.5) * 0.2 * (2 - z);
+    const length = 8 + (1.8 - z) * 18 * (0.6 + Math.random() * 0.8);
+    const alpha = 0.12 + (1.4 - z) * 0.5;
+    return { x, y, z, vx, vy, length, alpha, tilt: (Math.random() - 0.5) * 0.3 };
+  }
+  for (let i = 0; i < RAIN_COUNT; i++) rain.push(createRainParticle(true));
+
+  let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+  window.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  let lastTime = performance.now();
+  function draw(now = performance.now()) {
+    const dt = Math.min(60, now - lastTime) / 1000;
+    lastTime = now;
+
+    ctx.clearRect(0, 0, w / devicePixelRatio, h / devicePixelRatio);
+
+    ctx.save();
+    const bgGrad = ctx.createRadialGradient(
+      w / devicePixelRatio * 0.5, h / devicePixelRatio * 0.6, 10,
+      w / devicePixelRatio * 0.5, h / devicePixelRatio * 0.6, Math.max(w, h)
+    );
+    bgGrad.addColorStop(0, 'rgba(0,10,20,0.14)');
+    bgGrad.addColorStop(1, 'rgba(0,0,0,0.0)');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0,0,w / devicePixelRatio, h / devicePixelRatio);
+    ctx.
